@@ -53,7 +53,7 @@ void setup(){
     //          c. Create semaphore of value 1 which purpose is to protect this global_data struct in shared memory 
     //          d. Create shared memory for number_of_processes job struct (see processManagement_lab.h)
     //          e. When shared memory is successfully created, setup the content of the structs (see handout)
-    //          f. Create number_of_processes semaphores of value 1 each to protect each job struct in the shared memory 
+    //          f. Create number_of_processes semaphores of value 0 each to protect each job struct in the shared memory 
     //          g. Return to main
 
     ShmID_global_data = shmget(IPC_PRIVATE, sizeof(global_data), IPC_CREAT | 0666);
