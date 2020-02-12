@@ -10,6 +10,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <semaphore.h>
+#include <fcntl.h>
 
 /*DO NOT MODIFY THIS FILE*/
  
