@@ -81,7 +81,7 @@ void setup(){
  
 void createchildren(){
     // TODO#2:  a. Create number_of_processes children processes
-    //          b. Store the pid_t of children i at children_process[i]
+    //          b. Store the pid_t of children i at children_processes[i]
     //          c. For child process, invoke the method job_dispatch(i)
     //          d. For the parent process, continue creating the next children
     //          e. After number_of_processes children are created, return to main 
