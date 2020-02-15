@@ -28,7 +28,7 @@ int main(int argc, char* argv[]){
     for (int i = 0; i<number_of_processes; i++){
         shmPTR_jobs_buffer[i].task_type = 't';
         shmPTR_jobs_buffer[i].task_duration = 1;
-        shmPTR_jobs_buffer[i].task_status = 0; //new, undone job
+        shmPTR_jobs_buffer[i].task_status = 1; //new, undone job
         sem_post(sem_jobs_buffer[i]); // signal the child
     }
 
@@ -38,9 +38,9 @@ int main(int argc, char* argv[]){
 
     //enter exactly N termination jobs to the buffer
     for (int i = 0; i<number_of_processes; i++){
-        shmPTR_jobs_buffer[i].task_type = 'z';
+        shmPTR_jobs_buffer[i].task_type = 'z';//termination job
         shmPTR_jobs_buffer[i].task_duration = 1;
-        shmPTR_jobs_buffer[i].task_status = -1; //termination job
+        shmPTR_jobs_buffer[i].task_status = 1; 
         sem_post(sem_jobs_buffer[i]); // signal the child
     }
 
@@ -52,6 +52,9 @@ int main(int argc, char* argv[]){
             printf("Child %d with pid %d has exited successfully\n", i, waitpid_result);
         }
     }
+
+        // print final results
+    printf("Final results: sum -- %ld, odd -- %ld, min -- %ld, max -- %ld, total task -- %ld\n", ShmPTR_global_data->sum_work, ShmPTR_global_data->odd, ShmPTR_global_data->min, ShmPTR_global_data->max, ShmPTR_global_data->total_tasks);
 
     //detach and remove shared memory locations
     int detach_status = shmdt((void *) ShmPTR_global_data); //detach
@@ -85,6 +88,8 @@ int main(int argc, char* argv[]){
         }
         free(sem_name);
     }
+
+
     printf("success\n");
     
     return 0;
