@@ -33,7 +33,6 @@ int ShmID_global_data;
 global_data *ShmPTR_global_data;
 sem_t* sem_global_data;
 
-
 /**
  * Data struct contaning job description
  * */
@@ -45,7 +44,7 @@ typedef struct job {
                         // if task_status == 0 : no job available or job done. Init task_status to this value. 
 }job;
 
-//shared_nemory global_jobs to share to child process
+//shared_memory global_jobs to share to child process
 int ShmID_jobs;
 job *shmPTR_jobs_buffer;
 sem_t* sem_jobs_buffer[MAX_PROCESS];
@@ -54,6 +53,7 @@ sem_t* sem_jobs_buffer[MAX_PROCESS];
 //for main proc
 int number_of_processes; // the total number of processes from input, capped at 10 
 pid_t children_processes[MAX_PROCESS]; // id of all child processes
+
 
 // Main functions
 void task(long duration);
