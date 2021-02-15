@@ -46,7 +46,7 @@ void job_dispatch(int i){
  * Setup function to create shared mems and semaphores
  * **/
 void setup(){
-    printf("Debugging setup");
+    printf("Entering setup function \n");
 
 
     // TODO#1:  a. Create shared memory for global_data struct (see processManagement_lab.h)
@@ -81,7 +81,6 @@ void setup(){
             sem_unlink("semglobaldata");
             // try to open again
             sem_global_data = sem_open("semglobaldata", O_CREAT | O_EXCL, 0644, 1);
-
         }
         else{
             break;
@@ -90,7 +89,7 @@ void setup(){
     }    
 
     //          d. Create shared memory for number_of_processes job struct (see processManagement_lab.h)
-    ShmID_jobs = shmget(IPC_PRIVATE, sizeof(job), IPC_CREAT | 0666);
+    ShmID_jobs = shmget(IPC_PRIVATE, sizeof(job)* number_of_processes, IPC_CREAT | 0666); // each process has 1 job struc
     // error checking, if -1 means fail
     if (ShmID_jobs == -1){
         printf("job shared memory creation failed\n");
@@ -113,22 +112,23 @@ void setup(){
     
     //          f. Create number_of_processes semaphores of value 0 each to protect each job struct in the shared memory. Store the returned pointer by sem_open in sem_jobs_buffer[i]
 
-    printf("helppp");
     for (int i = 0; i < number_of_processes; i++){
-        char* sem_name = "semjobs" + i;
+        // char* sem_name = "semjobs" + i;
+        char sem_name[100] = "";
+        sprintf(sem_name, "semjobs%d", i);
+        // sprintf(sem_name + strlen(sem_name),)
+
         sem_jobs_buffer[i] = sem_open(sem_name, O_CREAT | O_EXCL, 0644, 0);
 
         while (true){
             if (sem_jobs_buffer[i] == SEM_FAILED){
-                sem_unlink("sem_name");
+                sem_unlink(sem_name);
                 sem_jobs_buffer[i] = sem_open(sem_name, O_CREAT | O_EXCL, 0644, 0);
             }
             else{
                 break;
             }
         }
-        
-
     }
 
 
