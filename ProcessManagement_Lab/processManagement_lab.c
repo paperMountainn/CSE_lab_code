@@ -157,7 +157,29 @@ void setup(){
  **/
  
 void createchildren(){
-    // TODO#2:  a. Create number_of_processes children processes
+    // TODO#2:  a. Create number_of_processes children 
+    for (int i = 0; i < number_of_processes; i++){
+        pid_t pid = fork();
+        if (pid == 0){
+            
+            // store pid
+            pid_t pid_c = getpid();
+
+            children_processes[i] = pid_c;
+            // invoke method
+            job_dispatch(i);
+            exit(0);
+        }
+    }
+
+    // children id does not get saved? Why? Testing Statement
+    for (int i = 0; i< number_of_processes; i++){
+        printf("children has pid %d \n", children_processes[i]);
+    }
+
+    for(int i=0;i<5;i++){ // loop will run n times (n=5) 
+    wait(NULL); 
+    }
     //          b. Store the pid_t of children i at children_processes[i]
     //          c. For child process, invoke the method job_dispatch(i)
     //          d. For the parent process, continue creating the next children
@@ -262,7 +284,7 @@ int main(int argc, char* argv[]){
 
     // return (EXIT_SUCCESS);
 
-    //Task 1 test code
+    // task 2 test code
 
     //Check and parse command line options to be in the right format
     if (argc < 2) {
@@ -279,76 +301,21 @@ int main(int argc, char* argv[]){
         if (atoi(argv[2]) < MAX_PROCESS) number_of_processes = atoi(argv[2]);
         else number_of_processes = MAX_PROCESS;
     }
-    
-    printf("Debug statement 1 \n");
 
     printf("Number of processes: %d\n", number_of_processes);
+    printf("Main process pid %d \n", getpid());
 
-    printf("Debug statement 2");
+    createchildren();
 
-    setup();
-
-    //test fill the shared memory with something 
+    // printf("Children processes pid %d, %d, %d, %d \n", children_processes[0],children_processes[1],children_processes[2],children_processes[3]);
     for (int i = 0; i<number_of_processes; i++){
-        printf("Parent write job %d with duration %d, status %d \n", i, i*2, 0);
-        shmPTR_jobs_buffer[i].task_duration = i*2;
-        shmPTR_jobs_buffer[i].task_status = 0; //from parent
-    }
-
-    pid_t pid_test = fork();
-
-    if (pid_test == 0){
-        //child print
-        for (int i = 0; i<number_of_processes; i++){
-            printf("Child receives job duration from parent: %d, status %d \n", shmPTR_jobs_buffer[i].task_duration, shmPTR_jobs_buffer[i].task_status);
-            //rewrite for parent
-            shmPTR_jobs_buffer[i].task_duration = -1;
-            shmPTR_jobs_buffer[i].task_status = -1; //from child
-            sem_post(sem_jobs_buffer[i]);
-        }
-        exit(0);
-    }
-    else{
-        for (int i = 0; i<number_of_processes; i++){
-            sem_wait(sem_jobs_buffer[i]);
-            printf("Job %i  cleared by children. Duration: %d, status %d \n", i, shmPTR_jobs_buffer[i].task_duration, shmPTR_jobs_buffer[i].task_status);
-
-        }
+        printf("Child process %d created with pid: %d \n", i, children_processes[i]);
         wait(NULL);
     }
 
-    //detach and remove shared memory locations
-    int detach_status = shmdt((void *) ShmPTR_global_data); //detach
-    if (detach_status == -1) printf("Detach shared memory global_data ERROR\n");
-    int remove_status = shmctl(ShmID_global_data, IPC_RMID, NULL); //delete
-    if (remove_status == -1) printf("Remove shared memory global_data ERROR\n");
-    detach_status = shmdt((void *) shmPTR_jobs_buffer); //detach
-    if (detach_status == -1) printf("Detach shared memory jobs ERROR\n");
-    remove_status = shmctl(ShmID_jobs, IPC_RMID, NULL); //delete
-    if (remove_status == -1) printf("Remove shared memory jobs ERROR\n");
 
-
-    //unlink all semaphores before exiting process
-    int sem_close_status = sem_unlink("semglobaldata");
-    if (sem_close_status == 0){
-        printf("Semaphore globaldata closes succesfully.\n");
-    }
-    else{
-        printf("Semaphore globaldata fails to close.\n");
-    }
-
-    for (int i = 0; i<number_of_processes; i++){
-        char *sem_name = malloc(sizeof(char)*16);
-        sprintf(sem_name, "semjobs%d", i);
-        sem_close_status = sem_unlink(sem_name);
-        if (sem_close_status == 0){
-             printf("Semaphore jobs %d closes succesfully.\n", i);
-        }
-        else{
-            printf("Semaphore jobs %d fails to close.\n", i);
-        }
-        free(sem_name);
-    }
     printf("success\n");
     return 0;
+
+
 }
