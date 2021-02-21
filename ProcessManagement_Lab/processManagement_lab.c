@@ -157,34 +157,29 @@ void setup(){
  **/
  
 void createchildren(){
-    // TODO#2:  a. Create number_of_processes children 
-    for (int i = 0; i < number_of_processes; i++){
-        pid_t pid = fork();
-        if (pid == 0){
-            
-            // store pid
-            pid_t pid_c = getpid();
 
-            children_processes[i] = pid_c;
+    pid_t pid_ch1 = getpid();
+
+    // TODO#2:  a. Create number_of_processes children
+    for (int i = 0; i < number_of_processes; i++){
+        
+        pid_t pid = fork();
+
+        if (pid == 0){
+
             // invoke method
             job_dispatch(i);
-            exit(0);
+
+        }
+        if (pid > 0){
+            children_processes[i] = pid;  
         }
     }
-
-    // children id does not get saved? Why? Testing Statement
-    for (int i = 0; i< number_of_processes; i++){
-        printf("children has pid %d \n", children_processes[i]);
-    }
-
-    for(int i=0;i<5;i++){ // loop will run n times (n=5) 
-    wait(NULL); 
-    }
+   
     //          b. Store the pid_t of children i at children_processes[i]
     //          c. For child process, invoke the method job_dispatch(i)
     //          d. For the parent process, continue creating the next children
     //          e. After number_of_processes children are created, return to main 
-
     return;
 }
 
@@ -315,6 +310,7 @@ int main(int argc, char* argv[]){
 
 
     printf("success\n");
+    //exit(0);
     return 0;
 
 
