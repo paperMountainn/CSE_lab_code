@@ -157,12 +157,29 @@ void setup(){
  **/
  
 void createchildren(){
-    // TODO#2:  a. Create number_of_processes children processes
+
+    pid_t pid_ch1 = getpid();
+
+    // TODO#2:  a. Create number_of_processes children
+    for (int i = 0; i < number_of_processes; i++){
+        
+        pid_t pid = fork();
+
+        if (pid == 0){
+
+            // invoke method
+            job_dispatch(i);
+
+        }
+        if (pid > 0){
+            children_processes[i] = pid;  
+        }
+    }
+   
     //          b. Store the pid_t of children i at children_processes[i]
     //          c. For child process, invoke the method job_dispatch(i)
     //          d. For the parent process, continue creating the next children
     //          e. After number_of_processes children are created, return to main 
-
     return;
 }
 
@@ -261,6 +278,40 @@ int main(int argc, char* argv[]){
 
 
     // return (EXIT_SUCCESS);
+
+    // task 2 test code
+
+    //Check and parse command line options to be in the right format
+    if (argc < 2) {
+        printf("Usage: sum <infile> <numprocs>\n");
+        exit(EXIT_FAILURE);
+    }
+
+    //Limit number_of_processes into 10. 
+    //If there's no third argument, set the default number_of_processes into 1.  
+    if (argc < 3){
+        number_of_processes = 1;
+    }
+    else{
+        if (atoi(argv[2]) < MAX_PROCESS) number_of_processes = atoi(argv[2]);
+        else number_of_processes = MAX_PROCESS;
+    }
+
+    printf("Number of processes: %d\n", number_of_processes);
+    printf("Main process pid %d \n", getpid());
+
+    createchildren();
+
+    // printf("Children processes pid %d, %d, %d, %d \n", children_processes[0],children_processes[1],children_processes[2],children_processes[3]);
+    for (int i = 0; i<number_of_processes; i++){
+        printf("Child process %d created with pid: %d \n", i, children_processes[i]);
+        wait(NULL);
+    }
+
+
+    printf("success\n");
+    //exit(0);
+    return 0;
 
 
 }
