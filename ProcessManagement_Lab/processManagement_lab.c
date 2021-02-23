@@ -7,6 +7,10 @@
 void task(long duration)
 {
     // simulate computation for x number of seconds
+
+    // added sem_wait 
+    sem_wait(sem_global_data);
+    
     usleep(duration*TIME_MULTIPLIER);
 
     // TODO: protect the access of shared variable below
@@ -22,25 +26,98 @@ void task(long duration)
     if (duration > ShmPTR_global_data->max) {
         ShmPTR_global_data->max = duration;
     }
+
+    // added sem_post
+    sem_post(sem_global_data);
     
 }
 
 
-/**
- * The function that is executed by each worker process to execute any available job given by the main process
- * */
+// /**
+//  * The function that is executed by each worker process to execute any available job given by the main process
+//  * */
+// void job_dispatch(int i){
+//     // job_dispatch is called within child process, means that you already got the i!
+//     job job = shmPTR_jobs_buffer[i];
+
+//     while (true){
+//         sem_wait(sem_jobs_buffer[i]); 
+
+
+//         if (job.task_status == 1){
+//                 // if task_type is t, execute the task()
+//             if (job.task_type == "t"){
+//                 task(job.task_duration);
+//                 break;
+//             }
+
+//             // if task_type is w, means wait there
+//             if (job.task_type == "w"){
+//                 usleep(job.task_duration*TIME_MULTIPLIER);
+//                 break;
+//             }
+
+//             // if task_type is i, kill child
+//             if (job.task_type == "i"){
+//                 kill(getpid(),SIGKILL);
+//                 break;
+//             }
+
+//             // child exit legally
+//             if (job.task_type == "z"){
+//                 exit(3);
+//                 break;
+
+//             }
+//             job.task_status = 0;
+
+//         }
+        
+        
+//     }
+
+
+
+// }
+
+
 void job_dispatch(int i){
-
     // TODO#3:  a. Always check the corresponding shmPTR_jobs_buffer[i] for new  jobs from the main process
+    while (true){
+
     //          b. Use semaphore so that you don't busy wait
+        sem_wait(sem_jobs_buffer[i]);
+
+        if (shmPTR_jobs_buffer[i].task_status == 1){
+
+
     //          c. If there's new job, execute the job accordingly: either by calling task(), usleep, exit(3) or kill(getpid(), SIGKILL)
-    //          d. Loop back to check for new job 
+            switch (shmPTR_jobs_buffer[i].task_type){
+            case 't':
+                task(shmPTR_jobs_buffer[i].task_duration);
+                break;
+            
+            case 'w':
+                usleep(shmPTR_jobs_buffer[i].task_duration*TIME_MULTIPLIER);
+                break;
 
+            case 'i':
+                kill(getpid(), SIGKILL);
+                break;
+        
+            case 'z':
+                exit(3);
+                break;
+            }
+            shmPTR_jobs_buffer[i].task_status = 0;
+        }    //          d. Loop back to check for new job 
 
-    printf("Hello from child %d with pid %d and parent id %d\n", i, getpid(), getppid());
-    exit(0); 
+    }
+    // printf("Hello from child %d with pid %d and parent id %d\n", i, getpid(), getppid());
+    // exit(0); 
 
 }
+    
 
 /** 
  * Setup function to create shared mems and semaphores
@@ -278,40 +355,8 @@ int main(int argc, char* argv[]){
 
 
     // return (EXIT_SUCCESS);
+    
 
-    // task 2 test code
-
-    //Check and parse command line options to be in the right format
-    if (argc < 2) {
-        printf("Usage: sum <infile> <numprocs>\n");
-        exit(EXIT_FAILURE);
-    }
-
-    //Limit number_of_processes into 10. 
-    //If there's no third argument, set the default number_of_processes into 1.  
-    if (argc < 3){
-        number_of_processes = 1;
-    }
-    else{
-        if (atoi(argv[2]) < MAX_PROCESS) number_of_processes = atoi(argv[2]);
-        else number_of_processes = MAX_PROCESS;
-    }
-
-    printf("Number of processes: %d\n", number_of_processes);
-    printf("Main process pid %d \n", getpid());
-
-    createchildren();
-
-    // printf("Children processes pid %d, %d, %d, %d \n", children_processes[0],children_processes[1],children_processes[2],children_processes[3]);
-    for (int i = 0; i<number_of_processes; i++){
-        printf("Child process %d created with pid: %d \n", i, children_processes[i]);
-        wait(NULL);
-    }
-
-
-    printf("success\n");
-    //exit(0);
-    return 0;
 
 
 }
