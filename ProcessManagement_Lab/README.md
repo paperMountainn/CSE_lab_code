@@ -1,9 +1,9 @@
-main_loop description
+### main_loop description
 
+```
 initialise a boolean variable called assigned
 
 while there are still inputs (fscanf scans for new task), set assigned == false
-
 busy wait and loop through all the processes 
     for each child process, check if child alive && task_status == 0
         assign new task
