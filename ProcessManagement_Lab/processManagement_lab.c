@@ -274,44 +274,114 @@ void main_loop(char* fileName){
 
 
     while (fscanf(opened_file, "%c %ld\n", &action, &num) == 2) { //while the file still has input
+        bool assigned = false;
+        pid_t pid;
 
         //TODO#4: create job, busy wait
         //      a. Busy wait and examine each shmPTR_jobs_buffer[i] for jobs that are done by checking that shmPTR_jobs_buffer[i].task_status == 0. 
         //You also need to ensure that the process i IS alive using waitpid(children_processes[i], NULL, WNOHANG). 
+
         while (true){
             for (int i = 0; i < number_of_processes; i++){
 
-                // check task completed + child alive or not
-                if (shmPTR_jobs_buffer[i].task_status == 0){
+                // check child alive and task_status is 0
+                //This WNOHANG option will not cause main process to block when the child is still alive. 
+                // waitpid will return 0 if the child is still alive. 
 
-                    
 
+                if (waitpid(children_processes[i], NULL, WNOHANG) == 0 && shmPTR_jobs_buffer[i].task_status == 0){
+                    //      b. If both conditions in (a) is satisfied update the contents of shmPTR_jobs_buffer[i], 
+                    shmPTR_jobs_buffer[i].task_type = action;
+                    shmPTR_jobs_buffer[i].task_status = 1;
+                    shmPTR_jobs_buffer[i].task_duration = num;
+
+                    // and increase the semaphore using sem_post(sem_jobs_buffer[i])
+
+                    sem_post(sem_jobs_buffer[i]);
+
+                    assigned = true;
+
+                    break;
+
+            //      c. Break of busy wait loop, advance to the next task on file 
                 }
+            }
 
-                // check child alive or not with waitpid
-                // check task_status for each task is 0 or not, means completed already?
-                // 
+            if (assigned){
+                break;
+            }
+
+            for (int i = 0; i < number_of_processes; i++){
+                int status = 0;
+                waitpid(children_processes[i], &status, WNOHANG);
+                // all children processes has not exited, respawn a child
+                if (status > 0){
+                    pid_t pid = fork();
+
+                    if (pid < 0){
+                        exit(1);
+                    }
+                    else if (pid == 0){
+                        job_dispatch(i);
+                    }
+
+                    else{
+                        shmPTR_jobs_buffer[i].task_type = action;
+                        shmPTR_jobs_buffer[i].task_status = 1;
+                        shmPTR_jobs_buffer[i].task_duration = num;
+
+                        children_processes[i] = pid;
+
+                        sem_post(sem_jobs_buffer[i]);
+                        
+
+                    }
+                    assigned = true;
+                    break;
+                }
             }
         }
-        //This WNOHANG option will not cause main process to block when the child is still alive. 
-        // waitpid will return 0 if the child is still alive. 
-        //      b. If both conditions in (a) is satisfied update the contents of shmPTR_jobs_buffer[i], 
-        // and increase the semaphore using sem_post(sem_jobs_buffer[i])
-        //      c. Break of busy wait loop, advance to the next task on file 
+            if (assigned == true){
+                break;
+            }
+    }
+
         //      d. Otherwise if process i is prematurely terminated, revive it. 
         //You are free to design any mechanism you want. The easiest way is to always spawn a new process using fork(), direct the children to job_dispatch(i) function. 
         //Then, update the shmPTR_jobs_buffer[i] for this process. Afterwards, don't forget to do sem_post as well 
         //      e. The outermost while loop will keep doing this until there's no more content in the input file. 
 
 
-
-    }
     fclose(opened_file);
+
+    printf("FIle closed \n");
 
     printf("Main process is going to send termination signals\n");
 
     // TODO#4: Design a way to send termination jobs to ALL worker that are currently alive 
+    while (true){
+        printf("Entered loop");
+        // terminate_process_num
+        int terminate_process_num = 0;
+        // for each process
+        for (int i = 0; i< number_of_processes; i++){
+            if (waitpid(children_processes[i], NULL, WNOHANG) == 0 && shmPTR_jobs_buffer[i].task_status == 0){
+                shmPTR_jobs_buffer[i].task_status = 1;
+                shmPTR_jobs_buffer[i].task_type = 'z';
+                sem_post(sem_jobs_buffer[i]);
 
+                terminate_process_num += 1;
+            }
+            terminate_process_num += 1;
+        }
+
+        if (terminate_process_num == number_of_processes){
+            break;
+        }
+        // if child alive and status cleared
+        // change task type to z
+
+    }
 
 
     //wait for all children processes to properly execute the 'z' termination jobs
@@ -320,16 +390,29 @@ void main_loop(char* fileName){
     while ((wpid = wait(NULL)) > 0){
         process_waited_final ++;
     }
-    
+
     // print final results
     printf("Final results: sum -- %ld, odd -- %ld, min -- %ld, max -- %ld, total task -- %ld\n", ShmPTR_global_data->sum_work, ShmPTR_global_data->odd, ShmPTR_global_data->min, ShmPTR_global_data->max, ShmPTR_global_data->total_tasks);
+
 }
 
 void cleanup(){
     //TODO#4: 
     // 1. Detach both shared memory (global_data and jobs)
+    shmctl(ShmID_global_data, IPC_RMID, NULL);
+    shmctl(ShmID_jobs, IPC_RMID, NULL);
     // 2. Delete both shared memory (global_data and jobs)
+    shmdt((void *) ShmPTR_global_data);
+    shmdt((void *) shmPTR_jobs_buffer);
+    
     // 3. Unlink all semaphores in sem_jobs_buffer
+    sem_unlink("semglobaldata");
+    for (int i=0; i< number_of_processes; i++){
+        char *sem_name = malloc(sizeof(char) * 16);
+        sprintf(sem_name, "semjobs%d", i);
+        sem_unlink(sem_name);
+        free(sem_name);
+    }
 }
 
 // Real main
@@ -477,6 +560,4 @@ int main(int argc, char* argv[]){
 
 
     return (EXIT_SUCCESS);
-
-
 }
