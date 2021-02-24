@@ -4,6 +4,9 @@
         "*.tcc": "c",
         "random": "c",
         "ratio": "c",
-        "utility": "c"
+        "utility": "c",
+        "bitset": "c",
+        "chrono": "c",
+        "algorithm": "c"
     }
 }
