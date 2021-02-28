@@ -18,14 +18,24 @@ public class Banker {
 	 * @param resources          An array of the available count for each resource.
 	 * @param numberOfCustomers  The number of customers.
 	 */
+
+	 // e.g. resources = 10 5 7 avail, customers = 5 which is n
 	public Banker (int[] resources, int numberOfCustomers) {
 		// TODO: set the number of resources
+		// is this the resource type? Which is m?
+		this.numberOfResources = resources.length;
 
 		// TODO: set the number of customers
+		this.numberOfCustomers = numberOfCustomers;
 
 		// TODO: set the value of bank resources to available
+		this.available = resources;
 
 		// TODO: set the array size for maximum, allocation, and need
+		this.maximum = new int[numberOfCustomers][numberOfResources];
+		this.allocation = new int[numberOfCustomers][numberOfResources];
+		this.need = new int[numberOfCustomers][numberOfResources];
+
 
 	}
 
@@ -36,7 +46,14 @@ public class Banker {
 	 */
 	public void setMaximumDemand(int customerIndex, int[] maximumDemand) {
 		// TODO: add customer, update maximum and need
+		
+		// update max
+		this.maximum[customerIndex] = maximumDemand; 
+		System.out.println(Arrays.toString(maximum[customerIndex]));
 
+		//update need
+		this.need[customerIndex] = maximumDemand;
+		
 	}
 
 	/**
@@ -81,13 +98,52 @@ public class Banker {
 		System.out.println("Customer " + customerIndex + " requesting");
         System.out.println(Arrays.toString(request));
 		// TODO: check if request larger than need
+		boolean request_larger_than_need = false;
+
+		for (int i = 0; i < numberOfResources; i++){
+			if (request[i] <= need[customerIndex][i]){
+				continue;
+			}
+			else{
+				request_larger_than_need = true;
+			}
+		}
+
 		
 		// TODO: check if request larger than available
+		boolean request_larger_than_available = false;
+
+		for (int i = 0; i < numberOfResources; i++){
+			if (request[i] <= this.available[i]){
+				continue;
+			}
+			else{
+				request_larger_than_available = true;
+			}
+		}
+
+		if (request_larger_than_available || request_larger_than_need){
+			System.out.println("Request rejected!! : ( ");
+			return false;
+
+		}		
 		
 		// TODO: check if the state is safe or not
+	
 		
 		// TODO: if it is safe, allocate the resources to customer customerNumber
-		
+		for (int i = 0; i < numberOfResources; i++){
+
+			// avail = avail - req
+			this.available[i] = this.available[i] - request[i];
+
+			// alloc = alloc + req
+			this.allocation[customerIndex][i] = this.allocation[customerIndex][i] + request[i]; 
+
+			//need = need - req
+			this.need[customerIndex][i] = this.need[customerIndex][i] - request[i]; 
+			
+		}
 		return true;
 	}
 
@@ -102,6 +158,22 @@ public class Banker {
 		System.out.println(Arrays.toString(release));
 		
 		// TODO: release the resources from customer customerNumber
+		
+
+		// opposite of request
+		for (int i = 0; i < numberOfResources; i++){
+
+			// avail = avail + req
+			this.available[i] = this.available[i] + release[i];
+
+			// alloc = alloc - req
+			this.allocation[customerIndex][i] = this.allocation[customerIndex][i] - release[i]; 
+
+			// need = need + req
+			this.need[customerIndex][i] = this.need[customerIndex][i] + release[i]; 
+			
+		}
+
 		
 
 	}
@@ -134,7 +206,8 @@ public class Banker {
 			int [] resources = null;
 
 			int n, m;
-
+			
+			// n is number of processes
 			try {
 				n = Integer.parseInt(fileReader.readLine().split(",")[1]);
 			} catch (Exception e) {
@@ -142,6 +215,7 @@ public class Banker {
 				fileReader.close();
 				return;
 			}
+			// m is the number of resource type
 
 			try {
 				m = Integer.parseInt(fileReader.readLine().split(",")[1]);
@@ -152,9 +226,16 @@ public class Banker {
 			}
 
 			try {
+				// available is 10 5 7
+				// 10, 5, 7
 				tokens = fileReader.readLine().split(",")[1].split(" ");
+
+				// resources have 3 spaces
 				resources = new int[tokens.length];
+
+				// tokens.length = 3
 				for (int i = 0; i < tokens.length; i++)
+				// resources = [10 ,5, 7]
 					resources[i] = Integer.parseInt(tokens[i]);
 			} catch (Exception e) {
 				System.out.println("Error parsing resources on line 3.");
@@ -166,20 +247,36 @@ public class Banker {
 
 			int lineNumber = 4;
 			while ((line = fileReader.readLine()) != null) {
+
+				// split at ","
 				tokens = line.split(",");
+
+				// max demand
 				if (tokens[0].equals("c")) {
 					try {
+						// customer index is 0 (for line 4)
 						int customerIndex = Integer.parseInt(tokens[1]);
+
+						// tokens[2] is 7 5 3
+						// split at " " means that you have 3 res
 						tokens = tokens[2].split(" ");
+
+						// resources have length of 3
 						resources = new int[tokens.length];
 						for (int i = 0; i < tokens.length; i++)
 							resources[i] = Integer.parseInt(tokens[i]);
+
+						// max = 7, 5, 3; index is 0
+						// update theBank attribute to have max demand of 7 5 3 for customer 0
 						theBank.setMaximumDemand(customerIndex, resources);
+
 					} catch (Exception e) {
 						System.out.println("Error parsing resources on line "+lineNumber+".");
 						fileReader.close();
 						return;
 					}
+					
+					// ??? request?
 				} else if (tokens[0].equals("r")) {
 					try {
 						int customerIndex = Integer.parseInt(tokens[1]);
@@ -187,6 +284,9 @@ public class Banker {
 						resources = new int[tokens.length];
 						for (int i = 0; i < tokens.length; i++)
 							resources[i] = Integer.parseInt(tokens[i]);
+
+						// request resources
+						// for customer 0, req for 010
 						theBank.requestResources(customerIndex, resources);
 					} catch (Exception e) {
 						System.out.println("Error parsing resources on line "+lineNumber+".");
@@ -200,6 +300,7 @@ public class Banker {
 						resources = new int[tokens.length];
 						for (int i = 0; i < tokens.length; i++)
 							resources[i] = Integer.parseInt(tokens[i]);
+							// release 1 1 0 from customer 1
 						theBank.releaseResources(customerIndex, resources);
 					} catch (Exception e) {
 						System.out.println("Error parsing resources on line "+lineNumber+".");
