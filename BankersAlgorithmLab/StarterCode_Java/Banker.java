@@ -32,10 +32,9 @@ public class Banker {
 		this.available = resources;
 
 		// TODO: set the array size for maximum, allocation, and need
-		this.maximum = new int[numberOfCustomers][numberOfResources];
-		this.allocation = new int[numberOfCustomers][numberOfResources];
-		this.need = new int[numberOfCustomers][numberOfResources];
-
+		this.maximum = new int[this.numberOfCustomers][this.numberOfResources];
+		this.allocation = new int[this.numberOfCustomers][this.numberOfResources];
+		this.need = new int[this.numberOfCustomers][this.numberOfResources];
 
 	}
 
@@ -48,11 +47,13 @@ public class Banker {
 		// TODO: add customer, update maximum and need
 		
 		// update max
-		this.maximum[customerIndex] = maximumDemand; 
-		System.out.println(Arrays.toString(maximum[customerIndex]));
+		int[] demand = maximumDemand;
+
+		// why need to clone?
+		this.maximum[customerIndex] = maximumDemand.clone();
 
 		//update need
-		this.need[customerIndex] = maximumDemand;
+		this.need[customerIndex] = maximumDemand.clone();
 		
 	}
 
@@ -85,7 +86,6 @@ public class Banker {
         }
         System.out.println("");
 	}
-
 	/**
 	 * Requests resources for a customer loan.
 	 * If the request leave the bank in a safe state, it is carried out.
@@ -97,11 +97,12 @@ public class Banker {
 		// TODO: print the request
 		System.out.println("Customer " + customerIndex + " requesting");
         System.out.println(Arrays.toString(request));
+
 		// TODO: check if request larger than need
 		boolean request_larger_than_need = false;
 
 		for (int i = 0; i < numberOfResources; i++){
-			if (request[i] <= need[customerIndex][i]){
+			if (request[i] <= this.need[customerIndex][i]){
 				continue;
 			}
 			else{
@@ -163,18 +164,16 @@ public class Banker {
 		// opposite of request
 		for (int i = 0; i < numberOfResources; i++){
 
-			// avail = avail + req
+			// avail = avail + rel
 			this.available[i] = this.available[i] + release[i];
 
-			// alloc = alloc - req
+			// alloc = alloc - rel
 			this.allocation[customerIndex][i] = this.allocation[customerIndex][i] - release[i]; 
 
-			// need = need + req
+			// need = need + rel
 			this.need[customerIndex][i] = this.need[customerIndex][i] + release[i]; 
 			
 		}
-
-		
 
 	}
 
@@ -268,7 +267,14 @@ public class Banker {
 
 						// max = 7, 5, 3; index is 0
 						// update theBank attribute to have max demand of 7 5 3 for customer 0
+
+						// System.out.println("DEBUG");
+						// System.out.println(Arrays.toString(resources));
 						theBank.setMaximumDemand(customerIndex, resources);
+
+						// System.out.println("DEBUG1");
+						// System.out.println(Arrays.toString(resources));
+
 
 					} catch (Exception e) {
 						System.out.println("Error parsing resources on line "+lineNumber+".");
@@ -276,7 +282,7 @@ public class Banker {
 						return;
 					}
 					
-					// ??? request?
+					// request res
 				} else if (tokens[0].equals("r")) {
 					try {
 						int customerIndex = Integer.parseInt(tokens[1]);
@@ -288,11 +294,17 @@ public class Banker {
 						// request resources
 						// for customer 0, req for 010
 						theBank.requestResources(customerIndex, resources);
+
+						// System.out.println("DEBUG2");
+						// System.out.println(Arrays.toString(theBank.maximum[0]));
 					} catch (Exception e) {
 						System.out.println("Error parsing resources on line "+lineNumber+".");
 						fileReader.close();
 						return;
 					}
+
+					
+					// System.out.println(Arrays.toString(theBank.maximum[0]));
 				} else if (tokens[0].equals("f")) {
 					try {
 						int customerIndex = Integer.parseInt(tokens[1]);
@@ -308,6 +320,7 @@ public class Banker {
 						return;
 					}
 				} else if (tokens[0].equals("p")) {
+					// at the end, print out the state
 					theBank.printState();
 				}
 			}
