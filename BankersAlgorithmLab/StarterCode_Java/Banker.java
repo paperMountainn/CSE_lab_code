@@ -186,6 +186,37 @@ public class Banker {
 	 */
 	private synchronized boolean checkSafe(int customerIndex, int[] request) {
 		// TODO: check if the state is safe
+		int [][] avail_copy = allocation.clone();
+		int [][] alloc_copy = allocation.clone();
+		int [][] need_copy = allocation.clone();
+		
+		boolean[] finished = new boolean[this.numberOfCustomers];
+		Arrays.fill(finished, false);
+		int finishedAll = 0;
+		// System.out.println(Arrays.toString(finished));
+		while (true){
+			for (int i = 0; i < numberOfCustomers; i++){
+				boolean need_lesser_than_work = true;
+				for (int j = 0; j < numberOfResources; j++){
+					if (need[customerIndex][j] <= this.available[j]){
+						continue;
+					}
+					else{
+						need_lesser_than_work = false;
+					}
+				}
+				if (finished[i] == false && need_lesser_than_work == true){
+					
+					avail_copy = avail_copy[i] + alloc_copy[i];
+					finished[i] = true;
+					finishedAll += 1;
+					continue;
+				}
+			}
+			if (finishedAll == numberOfCustomers){
+				break; // break while
+			}
+		}
 		
 		return true;
 	}
@@ -322,6 +353,9 @@ public class Banker {
 				} else if (tokens[0].equals("p")) {
 					// at the end, print out the state
 					theBank.printState();
+
+					// debug checkSafe
+					theBank.checkSafe(0, new int[]{1, 1, 1});
 				}
 			}
 			fileReader.close();
