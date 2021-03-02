@@ -45,9 +45,6 @@ public class Banker {
 	 */
 	public void setMaximumDemand(int customerIndex, int[] maximumDemand) {
 		// TODO: add customer, update maximum and need
-		
-		// update max
-		int[] demand = maximumDemand;
 
 		// why need to clone?
 		this.maximum[customerIndex] = maximumDemand.clone();
@@ -103,7 +100,7 @@ public class Banker {
 
 		for (int i = 0; i < numberOfResources; i++){
 			if (request[i] <= this.need[customerIndex][i]){
-				continue;
+				request_larger_than_need = false;
 			}
 			else{
 				request_larger_than_need = true;
@@ -115,6 +112,8 @@ public class Banker {
 		boolean request_larger_than_available = false;
 
 		for (int i = 0; i < numberOfResources; i++){
+			// System.out.println("available is");
+			// System.out.println(this.available[i]);
 			if (request[i] <= this.available[i]){
 				continue;
 			}
@@ -123,17 +122,20 @@ public class Banker {
 			}
 		}
 
+		// if any conditions true, do not even move to checkSafe, just ext function
 		if (request_larger_than_available || request_larger_than_need){
 			System.out.println("Request rejected!! : ( ");
 			return false;
-
 		}		
+
+		System.out.println("Moving on to CheckSafe");
 		
 		// TODO: check if the state is safe or not
-		boolean stateSafe = checkSafe();
+		boolean stateSafe = checkSafe(customerIndex, request);
 		
 		// TODO: if it is safe, allocate the resources to customer customerNumber
-		for (int i = 0; i < numberOfResources; i++){
+		if (stateSafe){
+			for (int i = 0; i < numberOfResources; i++){
 
 			// avail = avail - req
 			this.available[i] = this.available[i] - request[i];
@@ -142,10 +144,10 @@ public class Banker {
 			this.allocation[customerIndex][i] = this.allocation[customerIndex][i] + request[i]; 
 
 			//need = need - req
-			this.need[customerIndex][i] = this.need[customerIndex][i] - request[i]; 
-			
-		}
-		return true;
+			this.need[customerIndex][i] = this.need[customerIndex][i] - request[i]; 	
+			}	
+		}	
+		return stateSafe;
 	}
 
 	/**
@@ -186,15 +188,29 @@ public class Banker {
 	 */
 	private synchronized boolean checkSafe(int customerIndex, int[] request) {
 		// TODO: check if the state is safe
-		int [][] avail_copy = allocation.clone();
+
+		// make a copy of all the matrices
+		int [] avail_copy = available.clone(); //work
 		int [][] alloc_copy = allocation.clone();
-		int [][] need_copy = allocation.clone();
+		int [][] need_copy = need.clone();
+
+		System.out.println("avail:");
+
+		System.out.println(Arrays.toString(avail_copy));
+
 		
 		boolean[] finished = new boolean[this.numberOfCustomers];
+
+		// initially fill array with all false
 		Arrays.fill(finished, false);
 
+		// initialise indexExist to enter while loop
 		boolean indexExist = true;
+
+		// initialise loopCount to 0. we want the while loop to go for n times
+		// n = numberOfCustomers
 		int loopCount = 0;
+
 
 		while (indexExist){
 			loopCount +=  1;
@@ -207,7 +223,8 @@ public class Banker {
 					// check if need is lesser than work
 					// j is index for resource
 					for (int j = 0; j < numberOfResources; j++){
-						if (need_copy[i][j] <= avail_copy[i][j]){
+
+						if (need_copy[i][j] <= avail_copy[j]){
 							continue;
 						}
 						else{
@@ -215,20 +232,30 @@ public class Banker {
 							need_lesser_than_work = false;
 						}
 					}
+					System.out.println("avail");
+
+					System.out.println(Arrays.toString(avail_copy));
+
+					System.out.println("is need lesser than work?");
+					System.out.println(need_lesser_than_work);
+					
 
 					// if need is lesser than work, work = work + alloc
 					if (need_lesser_than_work){
+						// System.out.println("need_lesser_than_work");
+						// System.out.println(need_lesser_than_work);
 						// work = work + alloc 
 						// k is index for resources
 						for (int k = 0; k < numberOfResources; k ++){
-							avail_copy[i][k] = avail_copy[i][k] + alloc_copy[i][k];
+							avail_copy[k] = avail_copy[k] + alloc_copy[i][k];
+							finished[i] = true;
 						}
 					}
 					
 				}
 			}
 			// break if you looped for N^2 times, checked too many times le
-			if (loopCount == numberOfCustomers){
+			if (loopCount == this.numberOfCustomers){
 				indexExist = false;
 				break;
 			}
@@ -244,6 +271,9 @@ public class Banker {
 				isSafe = false;
 			}
 		}
+
+		System.out.println("Is it Safe?");
+		System.out.println(isSafe);
 
 
 
@@ -381,7 +411,13 @@ public class Banker {
 
 						// request resources
 						// for customer 0, req for 010
+
+						System.out.println("CheckSafe debug");
+						theBank.checkSafe(customerIndex, resources);
 						theBank.requestResources(customerIndex, resources);
+						
+						
+	
 
 						// System.out.println("DEBUG2");
 						// System.out.println(Arrays.toString(theBank.maximum[0]));
@@ -409,6 +445,8 @@ public class Banker {
 					}
 				} else if (tokens[0].equals("p")) {
 					// at the end, print out the state
+
+
 					theBank.printState();
 
 				}
