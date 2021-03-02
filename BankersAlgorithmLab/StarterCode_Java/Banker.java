@@ -130,7 +130,7 @@ public class Banker {
 		}		
 		
 		// TODO: check if the state is safe or not
-	
+		boolean stateSafe = checkSafe();
 		
 		// TODO: if it is safe, allocate the resources to customer customerNumber
 		for (int i = 0; i < numberOfResources; i++){
@@ -192,33 +192,90 @@ public class Banker {
 		
 		boolean[] finished = new boolean[this.numberOfCustomers];
 		Arrays.fill(finished, false);
-		int finishedAll = 0;
-		// System.out.println(Arrays.toString(finished));
-		while (true){
+
+		boolean indexExist = true;
+		int loopCount = 0;
+
+		while (indexExist){
+			loopCount +=  1;
+			// i is index of Customer
 			for (int i = 0; i < numberOfCustomers; i++){
-				boolean need_lesser_than_work = true;
-				for (int j = 0; j < numberOfResources; j++){
-					if (need[customerIndex][j] <= this.available[j]){
-						continue;
+				if (finished[i] == false){
+
+					boolean need_lesser_than_work = true;
+
+					// check if need is lesser than work
+					// j is index for resource
+					for (int j = 0; j < numberOfResources; j++){
+						if (need_copy[i][j] <= avail_copy[i][j]){
+							continue;
+						}
+						else{
+							// need is not lesser than work
+							need_lesser_than_work = false;
+						}
 					}
-					else{
-						need_lesser_than_work = false;
+
+					// if need is lesser than work, work = work + alloc
+					if (need_lesser_than_work){
+						// work = work + alloc 
+						// k is index for resources
+						for (int k = 0; k < numberOfResources; k ++){
+							avail_copy[i][k] = avail_copy[i][k] + alloc_copy[i][k];
+						}
 					}
-				}
-				if (finished[i] == false && need_lesser_than_work == true){
 					
-					avail_copy = avail_copy[i] + alloc_copy[i];
-					finished[i] = true;
-					finishedAll += 1;
-					continue;
 				}
 			}
-			if (finishedAll == numberOfCustomers){
-				break; // break while
+			// break if you looped for N^2 times, checked too many times le
+			if (loopCount == numberOfCustomers){
+				indexExist = false;
+				break;
 			}
 		}
+
+		// check if safe
+		boolean isSafe = true;
+		for (int i = 0 ; i <numberOfCustomers; i++){
+			if (finished[i] == true){
+				continue;
+			}
+			else{
+				isSafe = false;
+			}
+		}
+
+
+
+
+
+		// draft code
+		// while (true){
+		// 	for (int i = 0; i < numberOfCustomers; i++){
+		// 		boolean need_lesser_than_work = true;
+		// 		for (int j = 0; j < numberOfResources; j++){
+		// 			if (need[customerIndex][j] <= this.available[j]){
+		// 				continue;
+		// 			}
+		// 			else{
+		// 				need_lesser_than_work = false;
+		// 			}
+		// 		}
+		// 		if (finished[i] == false && need_lesser_than_work == true){
+					
+		// 			avail_copy = avail_copy[i] + alloc_copy[i];
+		// 			finished[i] = true;
+		// 			finishedAll += 1;
+		// 			continue;
+		// 		}
+		// 	}
+		// 	if (finishedAll == numberOfCustomers){
+		// 		break; // break while
+		// 	}
+		// }
+
 		
-		return true;
+		return isSafe;
 	}
 
 	/**
@@ -354,8 +411,6 @@ public class Banker {
 					// at the end, print out the state
 					theBank.printState();
 
-					// debug checkSafe
-					theBank.checkSafe(0, new int[]{1, 1, 1});
 				}
 			}
 			fileReader.close();
