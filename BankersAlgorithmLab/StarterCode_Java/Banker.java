@@ -101,7 +101,6 @@ public class Banker {
         System.out.println(Arrays.toString(request));
 
 		// TODO: check if request larger than need
-		// boolean request_larger_than_need = false;
 
 		for (int i = 0; i < numberOfResources; i++){
 			if (request[i] > this.need[customerIndex][i]){
@@ -111,23 +110,12 @@ public class Banker {
 
 		
 		// TODO: check if request larger than available
-		// boolean request_larger_than_available = false;
-
 		for (int j = 0; j < numberOfResources; j++){
-			// System.out.println("available is");
-			// System.out.println(this.available[i]);
 			if (request[j] > this.available[j]){
 				return false;
 			}
 			
 		}
-
-		// if any conditions true, do not even move to checkSafe, just ext function
-		// if (request_larger_than_available || request_larger_than_need){
-		// 	System.out.println("Request rejected!! : ( ");
-		// 	return false;
-		// }		
-
 		
 		// TODO: check if the state is safe or not
 		boolean stateSafe = checkSafe(customerIndex, request);
@@ -187,24 +175,6 @@ public class Banker {
 	 */
 	private synchronized boolean checkSafe(int customerIndex, int[] request) {
 		// TODO: check if the state is safe
-
-		// // make a copy of all the matrices
-		// int [] avail_copy = this.available.clone(); //work
-		// int [][] alloc_copy = this.allocation.clone();
-		// int [][] need_copy = this.need.clone();
-
-		// // assume request is already granted, update the table as so
-		// for (int i = 0; i < numberOfResources; i++){
-		// 	// avail = avail - req
-		// 	avail_copy[i] = avail_copy[i] - request[i];
-		
-		// 	// alloc = alloc + req
-		// 	alloc_copy[customerIndex][i] = alloc_copy[customerIndex][i] + request[i]; 
-
-		// 	//need = need - req
-		// 	need_copy[customerIndex][i] = need_copy[customerIndex][i] - request[i]; 	
-		// }
-
 
 		// make copy of matrices
 
@@ -270,10 +240,6 @@ public class Banker {
 					// if need is lesser than work, work = work + alloc
 					if (need_lesser_than_work){
 						indexExist = true;
-						// System.out.println("need_lesser_than_work");
-						// System.out.println(need_lesser_than_work);
-						// work = work + alloc 
-						// k is index for resources
 						for (int k = 0; k < numberOfResources; k ++){
 							avail_copy[k] = avail_copy[k] + alloc_copy[i][k];
 						}
@@ -281,14 +247,10 @@ public class Banker {
 					}
 					
 				}
-			}
-			// break if you looped for N^2 times, checked too many times le
-			// if (loopCount == numberOfCustomers){
-			// 	indexExist = false;
-			// 	break;
-			// }
-		}
 
+			}
+
+		}
 		// check if safe
 		boolean isSafe = true;
 		for (int i = 0 ; i <numberOfCustomers; i++){
@@ -296,34 +258,6 @@ public class Banker {
 				isSafe = false;
 			}
 		}
-
-
-		// draft code
-		// while (true){
-		// 	for (int i = 0; i < numberOfCustomers; i++){
-		// 		boolean need_lesser_than_work = true;
-		// 		for (int j = 0; j < numberOfResources; j++){
-		// 			if (need[customerIndex][j] <= this.available[j]){
-		// 				continue;
-		// 			}
-		// 			else{
-		// 				need_lesser_than_work = false;
-		// 			}
-		// 		}
-		// 		if (finished[i] == false && need_lesser_than_work == true){
-					
-		// 			avail_copy = avail_copy[i] + alloc_copy[i];
-		// 			finished[i] = true;
-		// 			finishedAll += 1;
-		// 			continue;
-		// 		}
-		// 	}
-		// 	if (finishedAll == numberOfCustomers){
-		// 		break; // break while
-		// 	}
-		// }
-
-		
 		return isSafe;
 	}
 
@@ -402,15 +336,7 @@ public class Banker {
 						for (int i = 0; i < tokens.length; i++)
 							resources[i] = Integer.parseInt(tokens[i]);
 
-						// max = 7, 5, 3; index is 0
-						// update theBank attribute to have max demand of 7 5 3 for customer 0
-
-						// System.out.println("DEBUG");
-						// System.out.println(Arrays.toString(resources));
 						theBank.setMaximumDemand(customerIndex, resources);
-
-						// System.out.println("DEBUG1");
-						// System.out.println(Arrays.toString(resources));
 
 
 					} catch (Exception e) {
@@ -427,19 +353,8 @@ public class Banker {
 						resources = new int[tokens.length];
 						for (int i = 0; i < tokens.length; i++)
 							resources[i] = Integer.parseInt(tokens[i]);
-
-						// request resources
-						// for customer 0, req for 010
-
-						// System.out.println("CheckSafe debug");
-						// theBank.checkSafe(customerIndex, resources);
 						theBank.requestResources(customerIndex, resources);
-						
-						
-	
 
-						// System.out.println("DEBUG2");
-						// System.out.println(Arrays.toString(theBank.maximum[0]));
 					} catch (Exception e) {
 						System.out.println("Error parsing resources on line "+lineNumber+".");
 						fileReader.close();
