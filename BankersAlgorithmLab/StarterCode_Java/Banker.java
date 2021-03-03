@@ -128,13 +128,12 @@ public class Banker {
 		// 	return false;
 		// }		
 
-		System.out.println("Moving on to CheckSafe");
 		
 		// TODO: check if the state is safe or not
-		// boolean stateSafe = checkSafe(customerIndex, request);
+		boolean stateSafe = checkSafe(customerIndex, request);
 		
 		// TODO: if it is safe, allocate the resources to customer customerNumber
-		// if (stateSafe){
+		if (stateSafe){
 			for (int k = 0; k < numberOfResources; k++){
 
 				// avail = avail - req
@@ -146,7 +145,7 @@ public class Banker {
 				//need = need - req
 				this.need[customerIndex][k] = this.need[customerIndex][k] - request[k]; 	
 			}	
-		// }	
+		}	
 		return true;
 	}
 
@@ -209,14 +208,34 @@ public class Banker {
 
 		// make copy of matrices
 
-		int[] temp_avail = new int[numberOfResources];
-        int[][] temp_need = new int[numberOfCustomers][numberOfResources];
-        int[][] temp_allocation = new int[numberOfCustomers][numberOfResources];
-        int[] work = new int[numberOfCustomers];
+		int[] avail_copy = new int[numberOfResources];
+		int[] work_copy = new int[numberOfResources];
+        int[][] need_copy = new int[numberOfCustomers][numberOfResources];
+        int[][] alloc_copy = new int[numberOfCustomers][numberOfResources];
+       
 
-		
+		// making copies
+		for (int i = 0; i < this.numberOfCustomers; i ++){
+			for (int j = 0; j < this.numberOfResources; j++){
+				avail_copy[j] = this.available[j] - request[j];
+				work_copy[j] = avail_copy[j];
 
+				if ( i == customerIndex){
+					need_copy[customerIndex][j] = this.need[customerIndex][j] - request[j];
+					alloc_copy[customerIndex][j] = this.allocation[customerIndex][j] + request[j];
+				}
+				else {
+					need_copy[i][j] = this.need[i][j];
+					alloc_copy[i][j] = this.allocation[i][j];
+
+				}
+			}
+
+		}
+
+		// initialise boolean array ,finished
 		boolean[] finished = new boolean[numberOfCustomers];
+
 		// initially fill array with all false
 		Arrays.fill(finished, false);
 
@@ -277,12 +296,6 @@ public class Banker {
 				isSafe = false;
 			}
 		}
-
-		System.out.println("Is it Safe?");
-		System.out.println(isSafe);
-
-
-
 
 
 		// draft code
