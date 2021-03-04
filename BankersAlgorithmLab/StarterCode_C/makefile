@@ -2,7 +2,7 @@ all: C_code/Banker.c C_code/checkerQ1.c C_code/checkerQ2.c
 	gcc -o checkq1 C_code/checkerQ1.c
 	gcc -o q1 C_code/Banker.c 
 	gcc -o checkq2 C_code/checkerQ2.c
-	gcc -o q2 C_code/Banker.c
+	gcc -o q2 C_code/BankerQ2.c
 
 testq1: ./checkq1 
 	./checkq1
