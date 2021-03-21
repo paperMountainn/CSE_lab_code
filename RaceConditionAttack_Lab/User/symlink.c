@@ -6,6 +6,8 @@
  * Turns the file whose path in argv[1] as a symbolic link to the file with path defined 
  * as argv[2] 
  **/
+
+// use this to change userfile.txt into a symbolic link to some file in Root to trick the rootproG
 int main(int argc, char * argv[])
 {
     if (argc < 3){

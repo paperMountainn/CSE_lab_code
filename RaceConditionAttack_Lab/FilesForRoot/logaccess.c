@@ -13,6 +13,7 @@ int main(int argc, char* argv[]){
     char * message = argv[1];
     FILE * fileHandler;
 
+    // write message into rootlogfile.txt
     char * fileName = "../Root/rootlogfile.txt";
 
     fileHandler = fopen(fileName, "a+");
@@ -21,6 +22,9 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
+    // write into rootlogfile.txt with fprintf
+    // you can write into rootlogfile.txt if you are in root mode or 
+    // if you use rootdo
     fprintf(fileHandler, "\nPID %d is writing -- ", getpid());
     fprintf(fileHandler, "%s", message);
     fprintf(fileHandler, "\n");
