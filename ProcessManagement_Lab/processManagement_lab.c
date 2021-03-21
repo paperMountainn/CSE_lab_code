@@ -86,6 +86,8 @@ void job_dispatch(int i){
     while (true){
 
     //          b. Use semaphore so that you don't busy wait
+
+    // child is waiting for your job, loop loop
         sem_wait(sem_jobs_buffer[i]);
 
         if (shmPTR_jobs_buffer[i].task_status == 1){
@@ -93,23 +95,26 @@ void job_dispatch(int i){
 
     //          c. If there's new job, execute the job accordingly: either by calling task(), usleep, exit(3) or kill(getpid(), SIGKILL)
             switch (shmPTR_jobs_buffer[i].task_type){
-            case 't':
-                task(shmPTR_jobs_buffer[i].task_duration);
-                break;
-            
-            case 'w':
-                usleep(shmPTR_jobs_buffer[i].task_duration*TIME_MULTIPLIER);
-                break;
+              case 't':
+                  task(shmPTR_jobs_buffer[i].task_duration);
+                  break;
+              
+              case 'w':
+                  usleep(shmPTR_jobs_buffer[i].task_duration*TIME_MULTIPLIER);
+                  break;
 
-            case 'i':
-                kill(getpid(), SIGKILL);
-                break;
-        
-            case 'z':
-                exit(3);
-                break;
-            }
-            shmPTR_jobs_buffer[i].task_status = 0;
+              case 'i':
+                  // do not give a new task to a dying child, we do not set task_status to 0 here.
+                  // crash halfway if i 
+                  kill(getpid(), SIGKILL);
+                  // do not set task_status = 0 here too
+                  break;
+          
+              case 'z':
+                  exit(3);
+                  // break;
+              }
+              shmPTR_jobs_buffer[i].task_status = 0;
         }    //          d. Loop back to check for new job 
 
     }
@@ -184,19 +189,28 @@ void setup(){
 
     shmPTR_jobs_buffer-> task_type = 'p'; // some initial values
     shmPTR_jobs_buffer -> task_duration = 0;
+
+    // COMMENT: you must use a loop here!!!
+    // for (int i = 0; i< number_of_processes; i++){
+    //   shmPTR_jobs_buffer[i].task_status = 0; 
+    
+    // }
     shmPTR_jobs_buffer-> task_status = 0; 
     
     //          f. Create number_of_processes semaphores of value 0 each to protect each job struct in the shared memory. Store the returned pointer by sem_open in sem_jobs_buffer[i]
 
     for (int i = 0; i < number_of_processes; i++){
         // char* sem_name = "semjobs" + i;
-        char sem_name[100] = "";
+        char sem_name[100] = "";  
         sprintf(sem_name, "semjobs%d", i);
         // sprintf(sem_name + strlen(sem_name),)
 
+        
         sem_jobs_buffer[i] = sem_open(sem_name, O_CREAT | O_EXCL, 0644, 0);
 
         while (true){
+
+            // cannot open one with the same name
             if (sem_jobs_buffer[i] == SEM_FAILED){
                 sem_unlink(sem_name);
                 sem_jobs_buffer[i] = sem_open(sem_name, O_CREAT | O_EXCL, 0644, 0);
@@ -268,6 +282,7 @@ void main_loop(char* fileName){
 
     while(true){
       for(int i = 0; i < number_of_processes; i++){
+        // check if child alive and task_status == 0, means child done doing it
         if(shmPTR_jobs_buffer[i].task_status == 0 && waitpid(children_processes[i], NULL, WNOHANG) == 0){
           // b. If both conditions in (a) is satisfied update the contents of shmPTR_jobs_buffer[i], and increase the semaphore using sem_post(sem_jobs_buffer[i])
           shmPTR_jobs_buffer[i].task_status = 1;
@@ -295,7 +310,7 @@ void main_loop(char* fileName){
             exit(1);
           }
 
-          // adult
+          // parent
           else if(pid > 0){
             shmPTR_jobs_buffer[i].task_status = 1;
             shmPTR_jobs_buffer[i].task_type = action;
