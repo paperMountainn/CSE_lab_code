@@ -1,0 +1,3 @@
+THIS IS ROOT FILE
+
+PID 4945 is writing -- helloworld

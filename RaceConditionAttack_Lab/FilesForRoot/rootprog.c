@@ -12,7 +12,9 @@
 int main(int argc, char * argv[])
 
 { 
+    // fileName here is userfile.txt, which we can write as a user
     char * fileName = argv[1];
+    // username and password buffers
     char username[64];
     char password[64];
     int i;
@@ -20,6 +22,7 @@ int main(int argc, char * argv[])
 
     printf("rootprog invoked with process of REAL UID : %d, REAL GID : %d, effective UID: %d\n", getuid(), getgid(), geteuid());
     printf("Please enter the username: ");
+
     /* get user input */
     scanf("%s", username);
     printf("Please enter the password: ");
@@ -32,11 +35,19 @@ int main(int argc, char * argv[])
      * 
      **/
 
+    // check if we have actual permission to open the file later on using fopen and write using fwrite
+
+    // time of check: permission already granted
     if(!access(fileName, W_OK)) 
     {
         printf("Access Granted \n");
+
         /*Simulating the Delay*/ 
+        // ATTACK ON ROOTPROG!!
+        // change file to symblink here hohoh, because the access is already granted
         sleep(DELAY); // sleep for 1 secs
+
+        // time of use
         fileHandler = fopen(fileName, "a+");
         if (fileHandler == NULL){
             printf("File cannot be opened\n");
