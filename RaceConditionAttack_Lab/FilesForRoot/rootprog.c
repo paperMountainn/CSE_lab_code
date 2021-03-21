@@ -42,6 +42,9 @@ int main(int argc, char * argv[])
     {
         printf("Access Granted \n");
 
+        // modified to obtain the real UID instead of the relative (The Fix)
+        seteuid(getuid());
+
         /*Simulating the Delay*/ 
         // ATTACK ON ROOTPROG!!
         // change file to symblink here hohoh, because the access is already granted
