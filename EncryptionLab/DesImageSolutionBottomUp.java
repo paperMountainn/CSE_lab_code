@@ -7,7 +7,7 @@ import javax.crypto.*;
 import java.util.Base64;
 
 
-public class DesImageSolution {
+public class DesImageSolutionBottomUp {
     public static void main(String[] args) throws Exception{
         int image_width = 200;
         int image_length = 200;
@@ -59,11 +59,9 @@ intBuf.get(arrayImg);
 
 // TODO: convert the encrypted byte[] back into int[] and write to outImage (use setRGB)
 
-// INVERT image
-
 for (int idy = 0; idy < image_length; idy++){
-    // outImage.setRGB(idx, idy, arrayImg[idy]);
-    outImage.setRGB(idx, idy, arrayImg[idy]);
+    
+    outImage.setRGB(idx, idy, arrayImg[image_length - idy - 1]);
 }
 
 
@@ -74,6 +72,6 @@ for (int idy = 0; idy < image_length; idy++){
             
         }
 //write outImage into file
-        ImageIO.write(outImage, "BMP",new File("triangle_new..bmp"));
+        ImageIO.write(outImage, "BMP",new File("triange_new.bmp"));
     }
 }
