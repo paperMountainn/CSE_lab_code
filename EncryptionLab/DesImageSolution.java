@@ -32,8 +32,8 @@ SecretKey desKey = keyGen.generateKey();
         
 
 // TODO: Create cipher object, initialize the ciphers with the given key, choose encryption algorithm/mode/padding,
-// Cipher desCipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
-Cipher desCipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
+Cipher desCipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
+// Cipher desCipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
 //you need to try both ECB and CBC mode, use PKCS5Padding padding method
 desCipher.init(Cipher.ENCRYPT_MODE, desKey);
 
@@ -46,34 +46,35 @@ desCipher.init(Cipher.ENCRYPT_MODE, desKey);
             for(int idy = 0; idy < image_length; idy++) {
                 ByteBuffer dbuf = ByteBuffer.allocate(4);
                 dbuf.putInt(imageArray[idx][idy]);
+
+                // invert
+                // dbuf.putInt(imageArray[idx][image_length - 1 - idy]);
                 byte[] bytes = dbuf.array();
                 System.arraycopy(bytes, 0, each_width_pixel, idy*4, 4);
             }
-// TODO: encrypt each column or row bytes 
-byte[] encryptedImageBytes = desCipher.doFinal(each_width_pixel);
+        
+        // TODO: encrypt each column or row bytes 
+        byte[] encryptedImageBytes = desCipher.doFinal(each_width_pixel);
 
-IntBuffer intBuf = ByteBuffer.wrap(encryptedImageBytes).order(ByteOrder.BIG_ENDIAN).asIntBuffer();
-int[] arrayImg = new int[intBuf.remaining()];
-intBuf.get(arrayImg);
-
-
-// TODO: convert the encrypted byte[] back into int[] and write to outImage (use setRGB)
-
-// INVERT image
-
-for (int idy = 0; idy < image_length; idy++){
-    // outImage.setRGB(idx, idy, arrayImg[idy]);
-    outImage.setRGB(idx, idy, arrayImg[idy]);
-}
+        IntBuffer intBuf = ByteBuffer.wrap(encryptedImageBytes).order(ByteOrder.BIG_ENDIAN).asIntBuffer();
+        int[] arrayImg = new int[intBuf.remaining()];
+        intBuf.get(arrayImg);
 
 
+        // TODO: convert the encrypted byte[] back into int[] and write to outImage (use setRGB)
 
+        // INVERT image
 
-
-            
-            
+        for (int idy = 0; idy < image_length; idy++){
+            outImage.setRGB(idx, idy, arrayImg[idy]);
+            // invert
+            // outImage.setRGB(idx, idy, arrayImg[image_length - 1 - idy]);
         }
+    }
+                        
 //write outImage into file
-        ImageIO.write(outImage, "BMP",new File("triangle_new..bmp"));
+        ImageIO.write(outImage, "BMP",new File("triangleCBC.bmp"));
+        // ImageIO.write(outImage, "BMP",new File("triangle_new.bmp"));
+
     }
 }
